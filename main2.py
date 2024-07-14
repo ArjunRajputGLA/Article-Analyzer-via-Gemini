@@ -1,4 +1,4 @@
-
+import io
 import os
 import re
 import time
@@ -202,25 +202,16 @@ def show_message(placeholder, message, message_type, duration=3):
 def generate_audio(text):
     try:
         tts = gTTS(text, lang='en-uk')
-        tts.save("answer.mp3")
-        st.success("Audio file created successfully.")
         
-        # Add a small delay to ensure file is written
-        time.sleep(1)
+        # Save audio to a BytesIO object
+        audio_bytes = io.BytesIO()
+        tts.write_to_fp(audio_bytes)
+        audio_bytes.seek(0)
         
-        if os.path.exists("answer.mp3"):
-            audio = AudioSegment.from_mp3("answer.mp3")
-            audio.export("answer.wav", format="wav")
-            
-            with open("answer.wav", "rb") as audio_file:
-                audio_bytes = audio_file.read()
-                st.audio(audio_bytes, format='audio/wav')
-            
-            # Clean up files
-            os.remove("answer.mp3")
-            os.remove("answer.wav")
-        else:
-            st.error("MP3 file not found after creation.")
+        # Play audio directly from memory
+        st.audio(audio_bytes, format='audio/mp3')
+        
+        st.success("Audio generated successfully.")
     except Exception as e:
         st.error(f"Error in audio generation: {str(e)}")
 

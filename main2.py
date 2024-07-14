@@ -233,17 +233,45 @@ def main():
                     answer_generated = True
                 except Exception as e:
                     st.error(f"Error in fetching response: {str(e)}")
-                    answer_generated = False
+                answer_generated = True
+
 
     if response and answer_generated:
-        st.write(response)
-        st.write("**Source URLs:**")
+        st.markdown("### Answer:")
+        st.text_area("Response", value=response, height=170, disabled=True)
+
+        with st.spinner("Fetching Audio..."):
+            audio_bytes = generate_audio(response)
+            if audio_bytes:
+                st.audio(audio_bytes, format="audio/mp3")
+
+        st.markdown("---")
+        if st.button("Regenerate Answer"):
+            st.experimental_rerun()
+
+        st.markdown("<hr class='sidebar-section'>", unsafe_allow_html=True)
+        st.markdown("### Sources:")
         for url in source_urls:
             st.write(url)
 
-        audio_bytes = generate_audio(response)
-        if audio_bytes:
-            st.audio(audio_bytes, format="audio/mp3")
+
+st.markdown("""
+    <style>
+        .footer {
+            position: fixed;
+            right: 60px;
+            bottom: 5px;
+            padding: 10px 25px;
+            font-size:16px;
+            color: grey;
+        }
+    </style>
+    <div class="footer">
+        &copy; 2024 <a href="https://www.linkedin.com/in/imstorm23203attherategmail/" style="color: cyan;">Arjun Singh Rajput</a> &ensp; | &ensp; Built with 💙 and Streamlit
+    </div>
+    """,
+    unsafe_allow_html=True
+)
 
 if __name__ == "__main__":
-    main()
+    main() 

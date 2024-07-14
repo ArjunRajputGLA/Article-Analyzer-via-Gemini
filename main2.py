@@ -200,9 +200,9 @@ def show_message(placeholder, message, message_type, duration=3):
         st.error(f"Error in audio generation: {str(e)}")
 
 
-def generate_audio(text):
+def generate_audio(response):
     try:
-        tts = gTTS(text, lang='en-uk')
+        tts = gTTS(response, lang='en-uk')
         audio_bytes = io.BytesIO()
         tts.write_to_fp(audio_bytes)
         audio_bytes.seek(0)
@@ -258,25 +258,31 @@ def main():
             with st.spinner("Fetching Response..."):
                 try:
                     response, source_urls = user_input(user_question)
-                    if response.strip():
-                        main_placeholder.markdown(f"**Response:** {response}")
-                        answer_generated = True
-                    else:
-                        main_placeholder.markdown("**Response:** Unable to generate a response based on the provided input.")
+                    st.markdown("### Answer:")
+                    st.text_area("", value=response, height=170, disabled=True)
+                    
+                    # Generate audio for the response
+                    audio_bytes = generate_audio(response)
+                    if audio_bytes:
+                        st.audio(audio_bytes, format="audio/mp3")
+                    
+                    answer_generated = True
                 except Exception as e:
-                    main_placeholder.error(f"Error: {str(e)}")
+                    st.error(f"An error occurred: {str(e)}")
+                    st.exception(e)
+                answer_generated = True
 
-    if answer_generated and response.strip():
-        audio_bytes = generate_audio(response)
-        if audio_bytes:
-            st.audio(audio_bytes, format='audio/mp3')
-        else:
-            st.warning("Unable to generate audio for the response.")
-        
-        if source_urls:
-            st.markdown("<h3 style='color: cyan;'>Source URLs:</h3>", unsafe_allow_html=True)
-            for url in source_urls:
-                st.markdown(f"- [{url}]({url})")
+    
+    if answer_generated:
+        st.markdown("---")
+        if st.button("Regenerate Answer"):
+            st.experimental_rerun()
+
+    if source_urls:
+        st.markdown("---")
+        st.markdown("### Source URLs:")
+        for url in source_urls:
+            st.markdown(f"- {url}")
             
 
 

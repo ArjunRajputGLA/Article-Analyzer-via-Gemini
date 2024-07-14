@@ -1,4 +1,4 @@
-
+import io
 import os
 import re
 import time
@@ -52,7 +52,7 @@ st.markdown(
     .footer {
         position: fixed;
         right: 0;
-        bottom: 0;
+        bottom: 10;
         padding: 10px 25px;
         font-size: 14px;
         color: #696969; /* Dim Gray */
@@ -62,8 +62,8 @@ st.markdown(
         padding: 0.5em 1em !important;
     }
     .sidebar-video {
-        margin-top: -80px;
-        margin-bottom: 20px;
+        margin-top: -60px;
+        margin-bottom: 30px;
         margin-left: -1rem;
         margin-right: -1rem;
         padding: 0;
@@ -174,6 +174,43 @@ def show_message(placeholder, message, message_type, duration=3):
     placeholder.empty()
 
 
+    try:
+        tts = gTTS(text, lang='en-uk')
+        tts.save("answer.mp3")
+        st.success("Audio file created successfully.")
+        
+        # Add a small delay to ensure file is written
+        time.sleep(1)
+        
+        if os.path.exists("answer.mp3"):
+            audio = AudioSegment.from_mp3("answer.mp3")
+            audio.export("answer.wav", format="wav")
+            
+            with open("answer.wav", "rb") as audio_file:
+                audio_bytes = audio_file.read()
+                st.audio(audio_bytes, format='audio/wav')
+            
+            # Clean up files
+            os.remove("answer.mp3")
+            os.remove("answer.wav")
+        else:
+            st.error("MP3 file not found after creation.")
+    except Exception as e:
+        st.error(f"Error in audio generation: {str(e)}")
+
+
+def generate_audio(text):
+    try:
+        tts = gTTS(text, lang='en-uk')
+        audio_bytes = io.BytesIO()
+        tts.write_to_fp(audio_bytes)
+        audio_bytes.seek(0)
+        return audio_bytes
+    except Exception as e:
+        st.error(f"Error in audio generation: {str(e)}")
+        return None
+
+
 def main():
     st.markdown('<h1 class="title">Article 📃 Analyzer <span class="version">1.1</span></h1>', unsafe_allow_html=True)
     st.markdown('<marquee scrollamount=16><h3 class="subtitle">Analyze and query multiple articles with ease</h3></marquee>', unsafe_allow_html=True)
@@ -218,28 +255,21 @@ def main():
         else:
             query_instruction.empty()
             with st.spinner("Fetching Response..."):
-                response, source_urls = user_input(user_question)
-            st.markdown("### Answer:")
-            st.text_area("", value=response, height=170, disabled=True)
-            
-            tts = gTTS(response, lang='en-uk')
-            tts.save("answer.mp3")
-            
-            audio = AudioSegment.from_mp3("answer.mp3")
-            audio.export("answer.wav", format="wav")
-            
-            with open("answer.wav", "rb") as audio_file:
-                audio_bytes = audio_file.read()
-                st.audio(audio_bytes, format='audio/wav')
-            
-            time.sleep(1)
-            try:
-                os.remove("answer.mp3")
-                os.remove("answer.wav")
-            except PermissionError:
-                pass
-            
-            answer_generated = True
+                try:
+                    response, source_urls = user_input(user_question)
+                    st.markdown("### Answer:")
+                    st.text_area("", value=response, height=170, disabled=True)
+                    
+                    # Generate audio for the response
+                    audio_bytes = generate_audio(response)
+                    if audio_bytes:
+                        st.audio(audio_bytes, format="audio/mp3")
+                    
+                    answer_generated = True
+                except Exception as e:
+                    st.error(f"An error occurred: {str(e)}")
+                    st.exception(e)
+                answer_generated = True
 
     
     if answer_generated:
@@ -260,7 +290,7 @@ st.markdown("""
         .footer {
             position: fixed;
             right: 10px;
-            bottom: 15px;
+            bottom: 20px;
             padding: 10px 25px;
             font-size:16px;
             color: grey;

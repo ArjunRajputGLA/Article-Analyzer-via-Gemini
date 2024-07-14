@@ -199,6 +199,32 @@ def show_message(placeholder, message, message_type, duration=3):
         st.error(f"Error in audio generation: {str(e)}")
 
 
+def generate_audio(text):
+    try:
+        tts = gTTS(text, lang='en-uk')
+        tts.save("answer.mp3")
+        st.success("Audio file created successfully.")
+        
+        # Add a small delay to ensure file is written
+        time.sleep(1)
+        
+        if os.path.exists("answer.mp3"):
+            audio = AudioSegment.from_mp3("answer.mp3")
+            audio.export("answer.wav", format="wav")
+            
+            with open("answer.wav", "rb") as audio_file:
+                audio_bytes = audio_file.read()
+                st.audio(audio_bytes, format='audio/wav')
+            
+            # Clean up files
+            os.remove("answer.mp3")
+            os.remove("answer.wav")
+        else:
+            st.error("MP3 file not found after creation.")
+    except Exception as e:
+        st.error(f"Error in audio generation: {str(e)}")
+
+
 def main():
     st.markdown('<h1 class="title">Article 📃 Analyzer <span class="version">1.1</span></h1>', unsafe_allow_html=True)
     st.markdown('<marquee scrollamount=16><h3 class="subtitle">Analyze and query multiple articles with ease</h3></marquee>', unsafe_allow_html=True)

@@ -64,7 +64,7 @@ st.markdown(
     }
     .sidebar-video {
         margin-top: -20px;
-        margin-bottom: 30px;
+        margin-bottom: 50px;
         margin-left: -1rem;
         margin-right: -1rem;
         padding: 0;

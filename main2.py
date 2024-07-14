@@ -53,7 +53,7 @@ st.markdown(
     .footer {
         position: fixed;
         right: 0;
-        bottom: 0;
+        bottom: 10;
         padding: 10px 25px;
         font-size: 14px;
         color: #696969; /* Dim Gray */

@@ -203,27 +203,13 @@ def show_message(placeholder, message, message_type, duration=3):
 def generate_audio(text):
     try:
         tts = gTTS(text, lang='en-uk')
-        tts.save("answer.mp3")
-        st.success("Audio file created successfully.")
-        
-        # Add a small delay to ensure file is written
-        time.sleep(1)
-        
-        if os.path.exists("answer.mp3"):
-            audio = AudioSegment.from_mp3("answer.mp3")
-            audio.export("answer.wav", format="wav")
-            
-            with open("answer.wav", "rb") as audio_file:
-                audio_bytes = audio_file.read()
-                st.audio(audio_bytes, format='audio/wav')
-            
-            # Clean up files
-            os.remove("answer.mp3")
-            os.remove("answer.wav")
-        else:
-            st.error("MP3 file not found after creation.")
+        audio_bytes = io.BytesIO()
+        tts.write_to_fp(audio_bytes)
+        audio_bytes.seek(0)
+        return audio_bytes
     except Exception as e:
         st.error(f"Error in audio generation: {str(e)}")
+        return None
 
 
 def main():
@@ -274,6 +260,12 @@ def main():
                     response, source_urls = user_input(user_question)
                     st.markdown("### Answer:")
                     st.text_area("", value=response, height=170, disabled=True)
+                    
+                    # Generate audio for the response
+                    audio_bytes = generate_audio(response)
+                    if audio_bytes:
+                        st.audio(audio_bytes, format="audio/mp3")
+                    
                     answer_generated = True
                 except Exception as e:
                     st.error(f"An error occurred: {str(e)}")

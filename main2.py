@@ -1,3 +1,4 @@
+
 import io
 import os
 import re
@@ -216,7 +217,7 @@ def generate_audio(text):
         st.error(f"Error in audio generation: {str(e)}")
 
 
-def main():
+async def main():
     st.markdown('<h1 class="title">Article 📃 Analyzer <span class="version">1.1</span></h1>', unsafe_allow_html=True)
     st.markdown('<marquee scrollamount=16><h3 class="subtitle">Analyze and query multiple articles with ease</h3></marquee>', unsafe_allow_html=True)
     

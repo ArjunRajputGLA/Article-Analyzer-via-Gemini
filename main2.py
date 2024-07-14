@@ -174,6 +174,31 @@ def show_message(placeholder, message, message_type, duration=3):
     placeholder.empty()
 
 
+    try:
+        tts = gTTS(text, lang='en-uk')
+        tts.save("answer.mp3")
+        st.success("Audio file created successfully.")
+        
+        # Add a small delay to ensure file is written
+        time.sleep(1)
+        
+        if os.path.exists("answer.mp3"):
+            audio = AudioSegment.from_mp3("answer.mp3")
+            audio.export("answer.wav", format="wav")
+            
+            with open("answer.wav", "rb") as audio_file:
+                audio_bytes = audio_file.read()
+                st.audio(audio_bytes, format='audio/wav')
+            
+            # Clean up files
+            os.remove("answer.mp3")
+            os.remove("answer.wav")
+        else:
+            st.error("MP3 file not found after creation.")
+    except Exception as e:
+        st.error(f"Error in audio generation: {str(e)}")
+
+
 def main():
     st.markdown('<h1 class="title">Article 📃 Analyzer <span class="version">1.1</span></h1>', unsafe_allow_html=True)
     st.markdown('<marquee scrollamount=16><h3 class="subtitle">Analyze and query multiple articles with ease</h3></marquee>', unsafe_allow_html=True)
@@ -218,28 +243,18 @@ def main():
         else:
             query_instruction.empty()
             with st.spinner("Fetching Response..."):
-                response, source_urls = user_input(user_question)
-            st.markdown("### Answer:")
-            st.text_area("", value=response, height=170, disabled=True)
-            
-            tts = gTTS(response, lang='en-uk')
-            tts.save("answer.mp3")
-            
-            audio = AudioSegment.from_mp3("answer.mp3")
-            audio.export("answer.wav", format="wav")
-            
-            with open("answer.wav", "rb") as audio_file:
-                audio_bytes = audio_file.read()
-                st.audio(audio_bytes, format='audio/wav')
-            
-            time.sleep(1)
-            try:
-                os.remove("answer.mp3")
-                os.remove("answer.wav")
-            except PermissionError:
-                pass
-            
-            answer_generated = True
+                try:
+                    response, source_urls = user_input(user_question)
+                    st.markdown("### Answer:")
+                    st.text_area("", value=response, height=170, disabled=True)
+                
+                    if st.checkbox("Generate audio"):
+                        generate_audio(response)
+                
+                    answer_generated = True
+                except Exception as e:
+                    st.error(f"An error occurred: {str(e)}")
+                answer_generated = True
 
     
     if answer_generated:

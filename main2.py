@@ -249,28 +249,33 @@ def main():
     source_urls = []
     answer_generated = False
 
-    if user_question:
-        urls = url_list.splitlines()
-        if not urls:
-            show_message(main_placeholder, "Please enter at least one URL before querying.", "warning")
+    if st.button("Get Response", key="response_button", use_container_width=True):
+        if not user_question.strip():
+            show_message(main_placeholder, "Please enter a valid question.", "error")
         else:
-            query_instruction.empty()
-            with st.spinner("Fetching Response..."):
-                try:
-                    response, source_urls = user_input(user_question)
-                    st.markdown("### Answer:")
-                    st.text_area("", value=response, height=170, disabled=True)
-                    
-                    # Generate audio for the response
-                    audio_bytes = generate_audio(response)
-                    if audio_bytes:
-                        st.audio(audio_bytes, format="audio/mp3")
-                    
-                    answer_generated = True
-                except Exception as e:
-                    st.error(f"An error occurred: {str(e)}")
-                    st.exception(e)
+            with st.spinner("Generating Response..."):
+                response, source_urls = user_input(user_question)
                 answer_generated = True
+                query_instruction.write("## Response Generated")
+
+    if answer_generated:
+        with st.expander("Sources", expanded=False):
+            for source in source_urls:
+                st.write(source)
+        
+        if response:
+            st.markdown("<hr>", unsafe_allow_html=True)
+            st.markdown("### Response:")
+            st.write(response)
+
+            st.markdown("### Listen to the Response:")
+            audio_placeholder = st.empty()
+            audio_bytes = generate_audio(response)
+            if audio_bytes:
+                st.audio(audio_bytes, format='audio/mp3')
+            else:
+                st.error("Failed to generate audio. Please try again.")
+            answer_generated = True
 
     
     if answer_generated:

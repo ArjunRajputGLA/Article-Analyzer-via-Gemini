@@ -1,5 +1,4 @@
 
-import io
 import os
 import re
 import time
@@ -53,7 +52,7 @@ st.markdown(
     .footer {
         position: fixed;
         right: 0;
-        bottom: 10;
+        bottom: 0;
         padding: 10px 25px;
         font-size: 14px;
         color: #696969; /* Dim Gray */
@@ -63,8 +62,8 @@ st.markdown(
         padding: 0.5em 1em !important;
     }
     .sidebar-video {
-        margin-top: -20px;
-        margin-bottom: 50px;
+        margin-top: -80px;
+        margin-bottom: 20px;
         margin-left: -1rem;
         margin-right: -1rem;
         padding: 0;
@@ -175,43 +174,6 @@ def show_message(placeholder, message, message_type, duration=3):
     placeholder.empty()
 
 
-    try:
-        tts = gTTS(text, lang='en-uk')
-        tts.save("answer.mp3")
-        st.success("Audio file created successfully.")
-        
-        # Add a small delay to ensure file is written
-        time.sleep(1)
-        
-        if os.path.exists("answer.mp3"):
-            audio = AudioSegment.from_mp3("answer.mp3")
-            audio.export("answer.wav", format="wav")
-            
-            with open("answer.wav", "rb") as audio_file:
-                audio_bytes = audio_file.read()
-                st.audio(audio_bytes, format='audio/wav')
-            
-            # Clean up files
-            os.remove("answer.mp3")
-            os.remove("answer.wav")
-        else:
-            st.error("MP3 file not found after creation.")
-    except Exception as e:
-        st.error(f"Error in audio generation: {str(e)}")
-
-
-def generate_audio(response):
-    try:
-        tts = gTTS(response, lang='en-uk')
-        audio_bytes = io.BytesIO()
-        tts.write_to_fp(audio_bytes)
-        audio_bytes.seek(0)
-        return audio_bytes
-    except Exception as e:
-        st.error(f"Error in audio generation: {str(e)}")
-        return None
-
-
 def main():
     st.markdown('<h1 class="title">Article 📃 Analyzer <span class="version">1.1</span></h1>', unsafe_allow_html=True)
     st.markdown('<marquee scrollamount=16><h3 class="subtitle">Analyze and query multiple articles with ease</h3></marquee>', unsafe_allow_html=True)
@@ -249,32 +211,34 @@ def main():
     source_urls = []
     answer_generated = False
 
-    if st.button("Get Response", key="response_button", use_container_width=True):
-        if not user_question.strip():
-            show_message(main_placeholder, "Please enter a valid question.", "error")
+    if user_question:
+        urls = url_list.splitlines()
+        if not urls:
+            show_message(main_placeholder, "Please enter at least one URL before querying.", "warning")
         else:
-            with st.spinner("Generating Response..."):
+            query_instruction.empty()
+            with st.spinner("Fetching Response..."):
                 response, source_urls = user_input(user_question)
-                answer_generated = True
-                query_instruction.write("## Response Generated")
-
-    if answer_generated:
-        with st.expander("Sources", expanded=False):
-            for source in source_urls:
-                st.write(source)
-        
-        if response:
-            st.markdown("<hr>", unsafe_allow_html=True)
-            st.markdown("### Response:")
-            st.write(response)
-
-            st.markdown("### Listen to the Response:")
-            audio_placeholder = st.empty()
-            audio_bytes = generate_audio(response)
-            if audio_bytes:
-                st.audio(audio_bytes, format='audio/mp3')
-            else:
-                st.error("Failed to generate audio. Please try again.")
+            st.markdown("### Answer:")
+            st.text_area("", value=response, height=170, disabled=True)
+            
+            tts = gTTS(response, lang='en-uk')
+            tts.save("answer.mp3")
+            
+            audio = AudioSegment.from_mp3("answer.mp3")
+            audio.export("answer.wav", format="wav")
+            
+            with open("answer.wav", "rb") as audio_file:
+                audio_bytes = audio_file.read()
+                st.audio(audio_bytes, format='audio/wav')
+            
+            time.sleep(1)
+            try:
+                os.remove("answer.mp3")
+                os.remove("answer.wav")
+            except PermissionError:
+                pass
+            
             answer_generated = True
 
     
@@ -295,8 +259,8 @@ st.markdown("""
     <style>
         .footer {
             position: fixed;
-            right: 60px;
-            bottom: 10px;
+            right: 10px;
+            bottom: 15px;
             padding: 10px 25px;
             font-size:16px;
             color: grey;

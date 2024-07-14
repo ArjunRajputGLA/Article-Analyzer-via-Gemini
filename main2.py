@@ -173,32 +173,6 @@ def show_message(placeholder, message, message_type, duration=3):
     time.sleep(duration)
     placeholder.empty()
 
-
-    try:
-        tts = gTTS(text, lang='en-uk')
-        tts.save("answer.mp3")
-        st.success("Audio file created successfully.")
-        
-        # Add a small delay to ensure file is written
-        time.sleep(1)
-        
-        if os.path.exists("answer.mp3"):
-            audio = AudioSegment.from_mp3("answer.mp3")
-            audio.export("answer.wav", format="wav")
-            
-            with open("answer.wav", "rb") as audio_file:
-                audio_bytes = audio_file.read()
-                st.audio(audio_bytes, format='audio/wav')
-            
-            # Clean up files
-            os.remove("answer.mp3")
-            os.remove("answer.wav")
-        else:
-            st.error("MP3 file not found after creation.")
-    except Exception as e:
-        st.error(f"Error in audio generation: {str(e)}")
-
-
 def generate_audio(text):
     try:
         tts = gTTS(text, lang='en-uk')
@@ -209,7 +183,6 @@ def generate_audio(text):
     except Exception as e:
         st.error(f"Error in audio generation: {str(e)}")
         return None
-
 
 def main():
     st.markdown('<h1 class="title">Article 📃 Analyzer <span class="version">1.1</span></h1>', unsafe_allow_html=True)
@@ -257,51 +230,20 @@ def main():
             with st.spinner("Fetching Response..."):
                 try:
                     response, source_urls = user_input(user_question)
-                    st.markdown("### Answer:")
-                    st.text_area("", value=response, height=170, disabled=True)
-                    
-                    # Generate audio for the response
-                    audio_bytes = generate_audio(response)
-                    if audio_bytes:
-                        st.audio(audio_bytes, format="audio/mp3")
-                    
                     answer_generated = True
                 except Exception as e:
-                    st.error(f"An error occurred: {str(e)}")
-                    st.exception(e)
-                answer_generated = True
+                    st.error(f"Error in fetching response: {str(e)}")
+                    answer_generated = False
 
-    
-    if answer_generated:
-        st.markdown("---")
-        if st.button("Regenerate Answer"):
-            st.experimental_rerun()
-
-    if source_urls:
-        st.markdown("---")
-        st.markdown("### Source URLs:")
+    if response and answer_generated:
+        st.write(response)
+        st.write("**Source URLs:**")
         for url in source_urls:
-            st.markdown(f"- {url}")
-            
+            st.write(url)
 
-
-st.markdown("""
-    <style>
-        .footer {
-            position: fixed;
-            right: 60px;
-            bottom: 5px;
-            padding: 10px 25px;
-            font-size:16px;
-            color: grey;
-        }
-    </style>
-    <div class="footer">
-        &copy; 2024 <a href="https://www.linkedin.com/in/imstorm23203attherategmail/" style="color: cyan;">Arjun Singh Rajput</a> &ensp; | &ensp; Built with 💙 and Streamlit
-    </div>
-    """,
-    unsafe_allow_html=True
-)
+        audio_bytes = generate_audio(response)
+        if audio_bytes:
+            st.audio(audio_bytes, format="audio/mp3")
 
 if __name__ == "__main__":
-    main() 
+    main()

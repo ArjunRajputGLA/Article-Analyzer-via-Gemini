@@ -9,3 +9,5 @@ langchain-core
 faiss-cpu
 gtts
 pydub
+ffmpeg
+libavcodec-extra

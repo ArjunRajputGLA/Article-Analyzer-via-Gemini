@@ -258,31 +258,25 @@ def main():
             with st.spinner("Fetching Response..."):
                 try:
                     response, source_urls = user_input(user_question)
-                    st.markdown("### Answer:")
-                    st.text_area("", value=response, height=170, disabled=True)
-                    
-                    # Generate audio for the response
-                    audio_bytes = generate_audio(response)
-                    if audio_bytes:
-                        st.audio(audio_bytes, format="audio/mp3")
-                    
-                    answer_generated = True
+                    if response.strip():
+                        main_placeholder.markdown(f"**Response:** {response}")
+                        answer_generated = True
+                    else:
+                        main_placeholder.markdown("**Response:** Unable to generate a response based on the provided input.")
                 except Exception as e:
-                    st.error(f"An error occurred: {str(e)}")
-                    st.exception(e)
-                answer_generated = True
+                    main_placeholder.error(f"Error: {str(e)}")
 
-    
-    if answer_generated:
-        st.markdown("---")
-        if st.button("Regenerate Answer"):
-            st.experimental_rerun()
-
-    if source_urls:
-        st.markdown("---")
-        st.markdown("### Source URLs:")
-        for url in source_urls:
-            st.markdown(f"- {url}")
+    if answer_generated and response.strip():
+        audio_bytes = generate_audio(response)
+        if audio_bytes:
+            st.audio(audio_bytes, format='audio/mp3')
+        else:
+            st.warning("Unable to generate audio for the response.")
+        
+        if source_urls:
+            st.markdown("<h3 style='color: cyan;'>Source URLs:</h3>", unsafe_allow_html=True)
+            for url in source_urls:
+                st.markdown(f"- [{url}]({url})")
             
 
 

@@ -2,9 +2,10 @@ streamlit
 python-dotenv
 requests
 beautifulsoup4
-google-generativeai 
-langchain-google-genai 
+google-generativeai  
+langchain-google-genai  
 langchain-community
 langchain-core
+faiss-cpu
 gtts
 pydub

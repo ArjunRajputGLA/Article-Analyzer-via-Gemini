@@ -264,13 +264,10 @@ def main():
                     response, source_urls = user_input(user_question)
                     st.markdown("### Answer:")
                     st.text_area("", value=response, height=170, disabled=True)
-                
-                    if st.checkbox("Generate audio"):
-                        generate_audio(response)
-                
                     answer_generated = True
                 except Exception as e:
                     st.error(f"An error occurred: {str(e)}")
+                    st.exception(e)
                 answer_generated = True
 
     
